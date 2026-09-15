@@ -1,5 +1,3 @@
-// @nimbalyst {"viewport":{"x":0,"y":0,"zoom":1},"positions":{},"entityViewMode":"compact"}
-
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
