@@ -9,3 +9,4 @@ coverage/
 .env
 *.db
 *.db-journal
+CLAUDE.md

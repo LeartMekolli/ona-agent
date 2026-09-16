@@ -76,6 +76,16 @@ describe('AnthropicProvider', () => {
     expect(create.mock.calls[0][0].thinking.type).toBe('adaptive');
   });
 
+  it('omits thinking and effort entirely for non-Opus models, since Haiku rejects both with a 400', async () => {
+    const create = jest.fn().mockResolvedValue(fakeSdkResponse);
+    const provider = new AnthropicProvider(makeClient(create));
+    await provider.send(req, 'claude-haiku-4-5', new AbortController().signal);
+
+    const sent = create.mock.calls[0][0];
+    expect(sent).not.toHaveProperty('thinking');
+    expect(sent).not.toHaveProperty('output_config');
+  });
+
   it('passes the abort signal through to the SDK', async () => {
     const create = jest.fn().mockResolvedValue(fakeSdkResponse);
     const provider = new AnthropicProvider(makeClient(create));

@@ -7,6 +7,10 @@ import type {
 } from '../types';
 import { toAnthropicTools } from '../schema-translate';
 
+function supportsReasoningControls(model: string): boolean {
+  return model.startsWith('claude-opus');
+}
+
 export class AnthropicProvider implements LLMProvider {
   readonly name: ProviderName = 'anthropic';
 
@@ -21,16 +25,22 @@ export class AnthropicProvider implements LLMProvider {
       model,
       max_tokens: req.maxTokens,
       messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
-      // Adaptive only. `budget_tokens` is removed and 400s on claude-opus-5;
-      // `disabled` can cause tool calls to appear as visible text.
-      thinking: { type: 'adaptive', display: 'summarized' },
     };
+
+    const reasoningControls = supportsReasoningControls(model);
+
+    // Adaptive only, and only on models that support it (Opus). `budget_tokens`
+    // is removed and 400s on claude-opus-5; `disabled` can cause tool calls to
+    // appear as visible text. Haiku rejects `thinking` entirely with a 400.
+    if (reasoningControls)
+      body['thinking'] = { type: 'adaptive', display: 'summarized' };
 
     if (req.system !== undefined) body['system'] = req.system;
     if (req.tools && req.tools.length > 0)
       body['tools'] = toAnthropicTools(req.tools);
-    // effort nests inside output_config, never at the top level.
-    if (req.effort !== undefined)
+    // effort nests inside output_config, never at the top level, and only
+    // on models that support it.
+    if (req.effort !== undefined && reasoningControls)
       body['output_config'] = { effort: req.effort };
 
     const res = await this.client.messages.create(body as never, { signal });

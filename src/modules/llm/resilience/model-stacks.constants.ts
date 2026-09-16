@@ -24,7 +24,7 @@ export const MODEL_STACKS: Readonly<
   generation: {
     primary: {
       provider: 'anthropic',
-      model: 'claude-opus-5',
+      model: 'claude-haiku-4-5',
       effort: 'high',
       maxRetries: 2,
       retryDelayMs: 1000,
